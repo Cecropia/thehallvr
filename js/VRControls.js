@@ -84,7 +84,7 @@ THREE.VRControls = function ( object, onError ) {
 
     };
 
-    this.update = function (position, rotation) {
+    this.update = function (/*position, rotation*/) {
 
         if ( vrDisplay ) {
 
@@ -117,7 +117,7 @@ THREE.VRControls = function ( object, onError ) {
             if ( pose.position !== null ) {
 
                 object.position.fromArray( pose.position );
-                object.position.add(position);
+                /* object.position.add(position); */
 
             } else {
 

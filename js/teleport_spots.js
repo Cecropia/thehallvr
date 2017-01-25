@@ -86,10 +86,14 @@ ABSULIT.teleportSpots = ABSULIT.teleportSpots || (function () {
 
             if(selectedSpotTotal < clock.getElapsedTime()){
                 if(WEBVR.isAvailable() == true){
-                    cameraPosition.copy(selectedSpot.position);
+                    //cameraPosition.copy(selectedSpot.position);
+					cameraContainer.position.copy(selectedSpot.position);
                 }else{
-                    camera.position.copy(selectedSpot.position);
-                    camera.position.y = userHeight;
+                    //camera.position.copy(selectedSpot.position);
+                    //camera.position.y = userHeight;
+
+					cameraContainer.position.copy(selectedSpot.position);
+                    cameraContainer.position.y = userHeight;
                 }
                 selectedSpot.material.color.setRGB(1, 1, 0);
                 selectedSpot = null;

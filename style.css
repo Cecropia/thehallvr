@@ -1,0 +1,12 @@
+body{
+    background-color: #000;
+    margin: 0px;
+    overflow: hidden;
+	color: #fff;
+	font-family: 'Arial',
+}
+
+.info{
+	font-family: Arial;
+	position:absolute;
+}

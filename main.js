@@ -1,6 +1,6 @@
 /*
-	@author Sebastian Sanabria ssanabria@cecropiasolutions.com @absulit
-	www.cecropiasolutions.com
+    @author Sebastian Sanabria ssanabria@cecropiasolutions.com @absulit
+    www.cecropiasolutions.com
 
 */
 
@@ -9,9 +9,11 @@ var scene,
     renderer,
     light,
     directionalLight,
-    stereoEnabled = true,
+
+    /*stereoEnabled = true,
     stereoFallbackEnabled = false,
-    stereoFallback = false,
+    stereoFallback = false,*/
+
     stereoEffect,
     vrEffect,
     effectCache,
@@ -23,7 +25,7 @@ var scene,
     PI = Math.PI,
     PI_HALF = PI / 2,
     textureCube,
-	textureCubeAnim2;
+    textureCubeAnim2;
 
     var o,
     handLeft,
@@ -134,7 +136,6 @@ var toggleStereo = function(){
 }
 
 function activateStereoFallback(){
-    console.log("---- activateStereoFallback");
     if(effectCache){
         stereoEffect = effectCache
     }else{
@@ -143,7 +144,7 @@ function activateStereoFallback(){
         effectCache = stereoEffect;
     }
     resizeViewport();
-    fullscreen();
+    //fullscreen();
 }
 
 window.mobileAndTabletcheck = function() {
@@ -222,13 +223,13 @@ function loadMocapData(){
 }
 
 function init() {
-    if ( stereoEnabled && (WEBVR.isAvailable() === false) && !stereoFallbackEnabled ) {
-        //document.body.appendChild( WEBVR.getMessage() );
+    if ( /*stereoEnabled &&*/ (WEBVR.isAvailable() === false) ) {
+        document.body.appendChild( WEBVR.getMessage() );
     }
 
-    renderer = new THREE.WebGLRenderer({antialias: true, alpha: false});
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer = new THREE.WebGLRenderer({antialias: !isMobile, alpha: false});
     renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth/2, window.innerHeight/2);
 
 
     scene = new THREE.Scene();
@@ -238,56 +239,45 @@ function init() {
     cameraCube = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 100000 );
 
 
-    if ( stereoEnabled && (WEBVR.isAvailable() === false) && !stereoFallbackEnabled ) {
-        camera.position.set(0, 2, -1);
-        camera.lookAt(new THREE.Vector3(0, 1.6, 0));
+    cameraContainer.add(camera);
+    scene.add(cameraContainer);
+
+    if(isMobile){
+        camera.position.y = userHeight;
+        controls = new THREE.DeviceOrientationControls( camera );
+    }else{
+
+        if(WEBVR.isAvailable()){
+            controls = new THREE.VRControls(/*cameraContainer*/ camera );
+            controls.standing = true;
+            vrEffect = new THREE.VREffect( renderer );
+        }else{
+
+        }
+        if ( navigator.getVRDisplays ) {
+
+            navigator.getVRDisplays()
+                .then( function ( displays ) {
+                    effect.setVRDisplay( displays[ 0 ] );
+                    controls.setVRDisplay( displays[ 0 ] );
+                } )
+                .catch( function () {
+                    // no displays
+                } );
+
+            document.body.appendChild( WEBVR.getButton( vrEffect ) );
+
+        }
     }
 
-    //cameraContainer.add(camera);
-    //scene.add(cameraContainer);
-
-    controls = new THREE.VRControls( camera );
-    controls.standing = true;
-    vrEffect = new THREE.VREffect( renderer );
-
-    if ( navigator.getVRDisplays ) {
-
-        navigator.getVRDisplays()
-            .then( function ( displays ) {
-                effect.setVRDisplay( displays[ 0 ] );
-                controls.setVRDisplay( displays[ 0 ] );
-            } )
-            .catch( function () {
-                // no displays
-            } );
-
-        document.body.appendChild( WEBVR.getButton( vrEffect ) );
-
-    }
-
-    if(stereoEnabled){
+    if(isMobile){
+        noSleep = new NoSleep()
+        activateStereoFallback();
+    }else{
         if ( WEBVR.isAvailable() === true ) {
             var button = WEBVR.getButton( vrEffect )
             document.body.appendChild( button );
-            if(isMobile){
-                button.onclick = function(){
-                    console.log('---- button overrided!');
-                    stereoFallbackEnabled = true;
-                    activateStereoFallback();
-                }
-            }
-        }else if(stereoFallbackEnabled){
-            console.info('Fallback to StereoEffect');
-            stereoFallback = true;
-
-            activateStereoFallback();
-
-        }else{
-            if(isMobile){
-                activateStereoFallback();
-            }
         }
-        noSleep = new NoSleep();
     }
 
 
@@ -333,156 +323,15 @@ function init() {
     handLeft = o.clone();
     handRight = o.clone();
 
-	handLeft.material.envMap = handRight.material.envMap = textureCube;
+    handLeft.material.envMap = handRight.material.envMap = textureCube;
 
-    scene.add( handLeft );
-    scene.add( handRight );
+    /*scene.add( handLeft );
+    scene.add( handRight );*/
 
 
     var fwAmount = .01,
         fwRun = .05;
 
-
-    ABSULIT.gamepad.init(['right','left','xbox'], function initGamepad(gamepads){
-        var left = gamepads.left,
-        	right = gamepads.right,
-        	xbox = gamepads.xbox,
-			buttons;
-
-        touchConnected = !!right;
-
-		handRight.visible = handLeft.visible = touchConnected;
-
-        if(xbox){
-            xboxConnected = true;
-            buttons = xbox.buttons;
-
-            var fw = fwAmount;
-            if(buttons.RT.pressed){
-                fw = fwRun;
-            }
-
-            if(buttons.LJX.pressed){
-                // correct
-                var leftJoystickRotation = buttons.LJX.angle - PI_HALF;
-                cameraPosition.z += Math.cos(-cameraRotation.y + leftJoystickRotation) * fw;
-                cameraPosition.x -= Math.sin(-cameraRotation.y + leftJoystickRotation) * fw;
-            }
-            if(buttons.RJX.pressed){
-                cameraRotation.y += -buttons.RJX.x * fw ; //correct
-            }
-
-
-            // Z is inverted
-            if(buttons.UP.pressed){
-                cameraPosition.z -= Math.cos(-cameraRotation.y) * fw;
-                cameraPosition.x += Math.sin(-cameraRotation.y) * fw;
-            }
-            if(buttons.DOWN.pressed){
-                cameraPosition.z -= Math.cos(-cameraRotation.y - (2*PI_HALF)) * fw;
-                cameraPosition.x += Math.sin(-cameraRotation.y - (2*PI_HALF)) * fw;
-            }
-            if(buttons.LEFT.pressed){
-                cameraPosition.z -= Math.cos(-cameraRotation.y - (1*PI_HALF)) * fw;
-                cameraPosition.x += Math.sin(-cameraRotation.y - (1*PI_HALF)) * fw;
-            }
-            if(buttons.RIGHT.pressed){
-                cameraPosition.z -= Math.cos(-cameraRotation.y + (1*PI_HALF)) * fw;
-                cameraPosition.x += Math.sin(-cameraRotation.y + (1*PI_HALF)) * fw;
-            }
-
-            if(buttons.A.pressed){
-                cameraPosition.y += -fw;
-            }
-
-            if(buttons.Y.pressed){
-                cameraPosition.y += fw;
-            }
-
-            if(buttons.B.pressed && !buttonPressed){
-                console.log(cameraPosition);
-                console.log(camera.rotation);
-                console.log("\n");
-            }
-
-            if(buttons.LB.pressed && !buttonPressed){
-                cameraContainer.rotation.y += PI_HALF;
-            }
-
-            if(buttons.RB.pressed && !buttonPressed){
-                 cameraContainer.rotation.y += -PI_HALF;
-            }
-
-
-            if(buttons.VIEW.pressed && !buttonPressed){
-                controls.resetPose();
-            }
-
-
-            buttonPressed = buttons.RB.pressed || buttons.LB.pressed || buttons.B.pressed || buttons.Y.pressed || buttons.VIEW.pressed;
-
-            /********************************************/
-
-            if(left){
-                left.pose.position[0] += cameraPosition.x;
-                left.pose.position[1] += cameraPosition.y;
-                left.pose.position[2] += cameraPosition.z;
-            }
-
-            if(right){
-                right.pose.position[0] += cameraPosition.x;
-                right.pose.position[1] += cameraPosition.y;
-                right.pose.position[2] += cameraPosition.z;
-            }
-
-            if(left){
-                handLeft.position.fromArray(left.pose.position);
-                handLeft.quaternion.fromArray( left.pose.orientation );
-            }
-
-            if(right){
-                handRight.position.fromArray(right.pose.position);
-                handRight.quaternion.fromArray( right.pose.orientation );
-            }
-
-            if(controls.standing){
-
-                if(controls.getVRDisplay){
-
-                    var frameData = null;
-
-                    if ( 'VRFrameData' in window ) {
-                        frameData = new VRFrameData();
-                    }
-
-                    var vrDisplay = controls.getVRDisplay();
-
-                    if ( vrDisplay && vrDisplay.stageParameters ) {
-
-                        handLeft.updateMatrix();
-                        handRight.updateMatrix();
-
-                        standingMatrix.fromArray( vrDisplay.stageParameters.sittingToStandingTransform );
-                        handLeft.applyMatrix( standingMatrix );
-                        handRight.applyMatrix( standingMatrix );
-
-                    } else {
-
-                        handLeft.position.setY( handLeft.position.y + controls.userHeight );
-                        handRight.position.setY( handRight.position.y + controls.userHeight );
-
-                    }
-                }
-
-            }
-
-        }else{
-            xboxConnected = false;
-        }
-
-    }, function(){
-
-    });
 
     ABSULIT.info.init();
     ABSULIT.teleportSpots.init(teleportSpots);
@@ -509,8 +358,10 @@ function init() {
     */
 
     window.addEventListener('click',function onClickWindow(){
-        noSleep.enable();
-        /*fullscreen();*/
+        if(isMobile){
+            noSleep.enable();
+            fullscreen();
+        }
     });
 
     window.addEventListener( 'resize', resizeViewport, false );
@@ -521,8 +372,8 @@ function init() {
 
 var ART_POINTER_TYPE = ABSULIT.teleportSpots.ART_POINTER_TYPE;
 var objectsToLoad = [
-    {file: 'floor.obj',             pointerType: null,             normal: true,     shininess: 10},
-    {file: 'hall.obj',              pointerType: null,             normal: true,     shininess: 10  },
+    {file: 'floor.obj',             pointerType: null,             normal: !isMobile,     shininess: 10},
+    {file: 'hall.obj',              pointerType: null,             normal: !isMobile,     shininess: 10  },
     {file: 'acropolis.obj',         pointerType: null,             normal: false,    shininess: null},
     {file: 'castle_lake.obj',       pointerType: null,             normal: false,    shininess: null},
     {file: 'good_samaritan.obj',    pointerType: null,             normal: false,    shininess: null},
@@ -556,13 +407,17 @@ function loadObject(o){
 };
 
 function update(time) {
-    vrEffect.requestAnimationFrame(update);
+    if(isMobile){
+        requestAnimationFrame(update)
+    }else{
+        vrEffect.requestAnimationFrame(update);
+    }
 
     /*
         My code
     */
 
-    ABSULIT.gamepad.update();
+    //ABSULIT.gamepad.update();
     var handRightRotation = handRight.rotation.toVector3();
     handRightRotation.normalize();
     ABSULIT.pointer.update(handRight.position, handRight.rotation);
@@ -584,30 +439,15 @@ function update(time) {
         - My code ends
     */
 
-    if(stereoEnabled){
-        if(WEBVR.isAvailable() === true){
-            if(stereoFallbackEnabled){
-                stereoEffect.render( scene, camera );
-            }else{
-                vrEffect.render( scene, camera );
-            }
-            controls.update(cameraPosition, cameraRotation);
-        }else{
-            if(stereoFallbackEnabled){
-                stereoEffect.render( scene, camera );
-            }else{
-                if(isMobile){
-                    stereoEffect.render( scene, camera );
-                }else{
-                    renderer.render(scene, camera);
-                }
-            }
-            controls.update(cameraPosition, cameraRotation);
-        }
-
+    if(isMobile){
+        stereoEffect.render( scene, camera );
     }else{
-        renderer.render(scene, camera);
+        if(WEBVR.isAvailable() === true){
+            vrEffect.render( scene, camera );
+        }
     }
+    controls.update(cameraPosition, cameraRotation);
+
 }
 
 function fullscreen() {

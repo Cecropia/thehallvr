@@ -3,7 +3,6 @@
 
 ![hallvr1](/screenshots/thehall1.jpg)
 
-WebVR demo to be used with Oculus Rift.
 
 The Hall is a demo created in [Cecropia Solutions](http://www.cecropiasolutions.com/) to test the WebVR capabilities.
 
@@ -11,9 +10,8 @@ The project has a variety of art items in display. Some custom, some of free acc
 
 # Navigation
 
-It has various types of navigation, but the main are the Teleport Spots, yellow dots on the floor to jump quick to an interest point.
+The main are the Teleport Spots, yellow dots on the floor to jump quickly jump to location of interest using the gaze pointer (green circle).
 
-If no Touch controllers are connected, the default navigation is using the gaze pointer.
 
 # Development process
 

@@ -224,7 +224,7 @@ function loadMocapData(){
 
 function init() {
     if ( /*stereoEnabled &&*/ (WEBVR.isAvailable() === false) ) {
-        document.body.appendChild( WEBVR.getMessage() );
+        /*document.body.appendChild( WEBVR.getMessage() );*/
     }
 
     renderer = new THREE.WebGLRenderer({antialias: !isMobile, alpha: false});

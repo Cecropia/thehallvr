@@ -15,7 +15,6 @@ ABSULIT.pointer = ABSULIT.pointer || (function () {
         lineGeometry = new THREE.Geometry(),
         circleGeometry = new THREE.Geometry();
 
-    var tempMatrix = new THREE.Matrix4();
 
     object.objects = [];
     object.IN = 'in';
@@ -42,46 +41,23 @@ ABSULIT.pointer = ABSULIT.pointer || (function () {
         raycaster.near = .1;
         raycaster.far = 1000;
 
-        if(xboxConnected){
-            lineContainer.add(object.circle);
-        }else if(touchConnected){
-            lineContainer.add(object.line);
-        }
+
+        lineContainer.add(object.circle);
+
 
         scene.add(lineContainer);
 
     };
 
     object.update = function (position, rotation) {
-        if(touchConnected){
-            raycaster.set(  position, rotation );
-            lineContainer.remove(object.circle);
-            lineContainer.add(object.line);
 
-            lineContainer.position.copy(position);
-            lineContainer.rotation.copy(rotation);
+        raycaster.setFromCamera(  { x: 0, y: 0 }, camera );
 
-            tempMatrix.identity().extractRotation( handRight.matrixWorld );
+        lineContainer.position.x = camera.position.x + cameraContainer.position.x;
+        lineContainer.position.y = camera.position.y + cameraContainer.position.y;
+        lineContainer.position.z = camera.position.z + cameraContainer.position.z;
 
-            raycaster.ray.origin.setFromMatrixPosition( handRight.matrixWorld );
-            raycaster.ray.direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
-        }else{
-            raycaster.setFromCamera(  { x: 0, y: 0 }, camera );
-            lineContainer.remove(object.line);
-            lineContainer.add(object.circle);
-
-            lineContainer.position.copy(camera.position);
-            lineContainer.rotation.copy(camera.rotation);
-
-        }
-
-
-        //
-
-
-
-
-
+        lineContainer.rotation.copy(camera.rotation);
 
 
         var collisions = raycaster.intersectObjects(object.objects);

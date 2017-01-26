@@ -9,6 +9,7 @@ var scene,
     renderer,
     light,
     directionalLight,
+	controls,
 
     /*stereoEnabled = true,
     stereoFallbackEnabled = false,
@@ -407,7 +408,7 @@ function loadObject(o){
 };
 
 function update(time) {
-    if(isMobile){
+    if(isMobile || !WEBVR.isAvailable()){
         requestAnimationFrame(update)
     }else{
         vrEffect.requestAnimationFrame(update);
@@ -444,9 +445,15 @@ function update(time) {
     }else{
         if(WEBVR.isAvailable() === true){
             vrEffect.render( scene, camera );
-        }
+        }else{
+            renderer.render( scene, camera );
+
+		}
     }
-    controls.update(cameraPosition, cameraRotation);
+	if(controls){
+    	controls.update(cameraPosition, cameraRotation);
+	}
+
 
 }
 
